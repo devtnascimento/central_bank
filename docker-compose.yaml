@@ -1,0 +1,21 @@
+services:
+  api:
+    build: .
+    ports:
+     - "8080:8080"
+    volumes:
+      - ".:/cbapi"
+    command: cbapi
+  postgres:
+      image: postgres:latest
+      container_name: CB_DB 
+      environment:
+        POSTGRES_DB: postgres
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: "123"
+      ports:
+        - "5432:5432"
+      volumes:
+        - postgres_data:/var/lib/postgresql/data
+  volumes:
+    postgres_data:
