@@ -2,8 +2,7 @@ mod connection;
 mod database;
 mod io;
 
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::{TcpListener, TcpStream};
+use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -14,5 +13,5 @@ async fn main() -> io::Result<()> {
         tokio::spawn(connection::handle(socket, addr));
     }
 
-    todo!();
+    Ok(())
 }

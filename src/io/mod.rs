@@ -3,7 +3,9 @@ use std::{
     fmt::{self, Display, Formatter},
 };
 
-pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
+use protocol::message;
+
+pub type Result<T> = std::result::Result<T, Box<dyn Error + 'static + Send + Sync>>;
 
 #[derive(Debug)]
 pub enum RequestError<'a> {

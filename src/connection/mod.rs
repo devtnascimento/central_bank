@@ -2,12 +2,9 @@ mod handler;
 
 use crate::io;
 use handler::*;
-use protocol::{message, serde_json};
+use protocol::serde_json;
 use std::{collections::HashMap, net::SocketAddr};
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::TcpStream,
-};
+use tokio::{io::AsyncReadExt, net::TcpStream};
 
 pub async fn handle(mut socket: TcpStream, addr: SocketAddr) -> io::Result<()> {
     println!("Accepted connection from: {}", addr);
@@ -19,37 +16,43 @@ pub async fn handle(mut socket: TcpStream, addr: SocketAddr) -> io::Result<()> {
                 let msg = String::from_utf8_lossy(&buffer[..n]);
                 let resp = serde_json::from_str::<HashMap<String, serde_json::Value>>(&msg)?;
 
-                println!("msg = {}", msg);
-
                 if let Some(msg_type) = resp.get("message_type") {
                     match msg_type.as_str() {
                         Some("Register") => {
-                            handle_register(&msg.to_string()).await?;
+                            println!("Received Register request");
+                            handle_register(&mut socket, msg.to_string()).await?;
+                            break;
                         }
                         Some("Request") => {
-                            if let Some(key) = resp.get("pix_key") {
-                                handle_request(&msg.to_string()).await?;
+                            if let Some(key) = resp.get("key") {
+                                let key = key.clone().to_string().trim_matches('"').to_string();
+                                handle_request(&mut socket, key).await?;
+                                break;
                             } else {
-                                unreachable!("pix_key not found");
+                                handle_error(&mut socket, "pix_key field not found").await?;
+                                break;
                             }
                         }
                         Some(_) => {
-                            return Err(Box::new(io::RequestError::Other("Invalid message_type")));
+                            handle_error(&mut socket, "Invalid message_type field").await?;
+                            break;
                         }
                         None => {
-                            return Err(Box::new(io::RequestError::Other(
-                                "Missing message_type field",
-                            )));
+                            handle_error(&mut socket, "Missing message_type field").await?;
+                            break;
                         }
                     }
                 }
             }
             Ok(_) => {
                 println!("connection closed by {}: {}", addr, addr);
+                break;
             }
             Err(e) => {
                 eprintln!("Error reading from socket: {}", e);
+                return Err(Box::new(e));
             }
         }
     }
+    Ok(())
 }

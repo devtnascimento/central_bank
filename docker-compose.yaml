@@ -6,16 +6,7 @@ services:
     volumes:
       - ".:/cbapi"
     command: cbapi
-  postgres:
-      image: postgres:latest
-      container_name: CB_DB 
-      environment:
-        POSTGRES_DB: postgres
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: "123"
-      ports:
-        - "5432:5432"
-      volumes:
-        - postgres_data:/var/lib/postgresql/data
-  volumes:
-    postgres_data:
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
