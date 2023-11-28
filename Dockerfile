@@ -1,17 +1,21 @@
-FROM rust:latest
+FROM rust:1.74-buster as builder
 
-WORKDIR /cbapi
+WORKDIR /app
 COPY ./central_bank . 
 
 WORKDIR /protocol
 COPY ./protocol .
 
 
-WORKDIR /cbapi
+WORKDIR /app
 
-RUN cargo install --path .
+RUN cargo build --release
 
-EXPOSE 8080
+FROM debian:buster-slim
 
-CMD ["cbapi"]
+WORKDIR /usr/local/bin
+
+COPY --from=builder /app/target/release/cbapi .
+
+CMD ["./cbapi"]
 

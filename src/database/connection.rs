@@ -1,10 +1,10 @@
-use crate::{connection, io};
+use crate::io;
 use protocol::{
     message::{response, Status, User},
     serde_json,
 };
 use redis::{aio::Connection, AsyncCommands, Client, RedisError};
-use std::{borrow::BorrowMut, cell::Cell};
+use std::cell::Cell;
 
 pub struct Redis {
     pub client: Client,
@@ -13,7 +13,7 @@ pub struct Redis {
 
 impl Redis {
     pub async fn new() -> io::Result<Redis> {
-        let client = Client::open("redis://127.0.0.1/")?;
+        let client = Client::open("redis://redis/")?;
         let connection = client.get_async_connection().await?;
         Ok(Redis {
             client,
